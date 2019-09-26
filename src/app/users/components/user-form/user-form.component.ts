@@ -1,11 +1,11 @@
-import { Component, OnInit, OnDestroy} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, UrlTree } from '@angular/router';
 
 // rxjs
 import { Observable, Subscription } from 'rxjs';
 import { pluck } from 'rxjs/operators';
 
-import { DialogService, CanComponentDeactivate } from './../../../core';
+import { AutoUnsubscribe, DialogService, CanComponentDeactivate } from './../../../core';
 import { UserModel } from './../../models/user.model';
 import { UserObservableService } from './../../services';
 import { Location } from '@angular/common';
@@ -15,7 +15,8 @@ import { Location } from '@angular/common';
   templateUrl: './user-form.component.html',
   styleUrls: ['./user-form.component.css']
 })
-export class UserFormComponent implements OnInit, OnDestroy, CanComponentDeactivate {
+@AutoUnsubscribe()
+export class UserFormComponent implements OnInit, CanComponentDeactivate {
   user: UserModel;
   originalUser: UserModel;
 
@@ -36,12 +37,6 @@ export class UserFormComponent implements OnInit, OnDestroy, CanComponentDeactiv
       this.user = { ...user };
       this.originalUser = { ...user };
     });
-  }
-
-  ngOnDestroy(): void {
-    if (this.sub) {
-       this.sub.unsubscribe();
-    }
   }
 
   onSaveUser() {
