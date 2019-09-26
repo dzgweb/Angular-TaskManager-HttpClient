@@ -38,22 +38,32 @@ export class UserFormComponent implements OnInit, OnDestroy, CanComponentDeactiv
     });
   }
 
+  ngOnDestroy(): void {
+    if (this.sub) {
+       this.sub.unsubscribe();
+    }
+  }
+
   onSaveUser() {
     const user = { ...this.user };
 
-    if (user.id) {
-      this.userArrayService.updateUser(user);
-      // optional parameter: http://localhost:4200/users;id=2
-      this.router.navigate(['/users', { editedUserID: user.id }]);
-    } else {
-      this.userArrayService.createUser(user);
-      this.onGoBack();
-    }
-    this.originalUser = { ...this.user };
+    const method = user.id ? 'updateUser' : 'createUser';
+    this.sub = this.userObservableService[method](user)
+      .subscribe(
+        savedUser => {
+          this.originalUser = { ...savedUser };
+          user.id
+            // optional parameter: http://localhost:4200/users;editedUserID=2
+            ? this.router.navigate(['users', { editedUserID: user.id }])
+            : this.onGoBack();
+        },
+        error => console.log(error)
+      );
   }
 
   onGoBack() {
-    this.router.navigate(['./../../'], { relativeTo: this.route });
+    // this.router.navigate(['./../../'], { relativeTo: this.route });
+    this.location.back();
   }
 
   canDeactivate():

@@ -7,7 +7,7 @@ import {
 } from '@angular/common/http';
 
 import { Observable, throwError } from 'rxjs';
-import { catchError, retry } from 'rxjs/operators';
+import { concatMap, catchError, retry } from 'rxjs/operators';
 
 import { UserModel } from './../models/user.model';
 import { UsersAPI } from './../users.config';
@@ -40,33 +40,40 @@ export class UserObservableService {
     }
 
 
-    updateUser(user: UserModel): Observable<UserModel> {
-      const url = `${this.usersUrl}/${user.id}`;
-      const body = JSON.stringify(user);
-      const options = {
-        headers: new HttpHeaders({ 'Content-Type': 'application/json' })
-      };
+  updateUser(user: UserModel): Observable<UserModel> {
+    const url = `${this.usersUrl}/${user.id}`;
+    const body = JSON.stringify(user);
+    const options = {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+    };
 
-      return this.http
-            .put<UserModel>(url, body, options)
-            .pipe( catchError(this.handleError) );
-    }
+    return this.http
+      .put<UserModel>(url, body, options)
+      .pipe( catchError(this.handleError) );
+  }
 
-    createUser(user: UserModel): Observable<UserModel> {
-      const url = this.usersUrl;
-      const body = JSON.stringify(user);
-      const options = {
-        headers: new HttpHeaders({ 'Content-Type': 'application/json' })
-      };
+  createUser(user: UserModel): Observable<UserModel> {
+    const url = this.usersUrl;
+    const body = JSON.stringify(user);
+    const options = {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+    };
 
-      return this.http
-        .post<UserModel>(url, body, options)
-        .pipe(
+    return this.http
+      .post<UserModel>(url, body, options)
+      .pipe(
         catchError( this.handleError )
-        );
-    }
+      );
+  }
 
-  deleteUser(user: UserModel) {}
+  deleteUser(user: UserModel): Observable<UserModel[]> {
+    const url = `${this.usersUrl}/${user.id}`;
+
+    return this.http.delete(url)
+      .pipe(
+        concatMap(() => this.getUsers())
+      );
+  }
 
   private handleError(err: HttpErrorResponse) {
     // A client-side or network error occurred.
